@@ -1,0 +1,66 @@
+# ===============================
+# Build Tools
+# ===============================
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+
+# ===============================
+# IDEs
+# ===============================
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# ===============================
+# Logs
+# ===============================
+
+*.log
+
+# ===============================
+# Environment / Secrets
+# ===============================
+
+.env
+application-local.properties
+application-dev.properties
+application.properties
+
+# ===============================
+# OS Files
+# ===============================
+
+.DS_Store
+Thumbs.db
