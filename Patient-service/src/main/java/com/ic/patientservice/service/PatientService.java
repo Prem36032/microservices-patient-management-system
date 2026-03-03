@@ -1,5 +1,6 @@
 package com.ic.patientservice.service;
 
+import com.ic.patientservice.dto.PatientRequestDto;
 import com.ic.patientservice.dto.PatientResponseDto;
 import com.ic.patientservice.mapper.PatientMapper;
 import com.ic.patientservice.model.Patient;
@@ -21,5 +22,11 @@ public class PatientService {
         List<Patient> patients = repository.findAll();
         return patients.stream().map(PatientMapper::toDto).toList();
     }
+
+    public PatientResponseDto addPatient(PatientRequestDto dto){
+        Patient patient = repository.save(PatientMapper.toEntity(dto));
+        return PatientMapper.toDto(patient);
+    }
+
 
 }
