@@ -1,6 +1,7 @@
 package com.ic.patientservice.GlobalExceptionHandler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,5 +20,14 @@ public class GlobalExceptionHandler {
 
         ex.getBindingResult().getFieldErrors().forEach(err-> errors.put(err.getField(),err.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(EmailAlreadyExistException.class)
+    public ResponseEntity<Map<String,String>> handleEmailAlreadyExistException(EmailAlreadyExistException e){
+        HashMap<String,String> error = new HashMap<>();
+
+        error.put("Message", e.getMessage());
+        return new ResponseEntity<>(error,HttpStatus.CONFLICT);
+
     }
 }

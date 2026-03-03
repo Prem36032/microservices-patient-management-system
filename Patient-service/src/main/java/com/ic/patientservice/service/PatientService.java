@@ -1,5 +1,6 @@
 package com.ic.patientservice.service;
 
+import com.ic.patientservice.GlobalExceptionHandler.EmailAlreadyExistException;
 import com.ic.patientservice.dto.PatientRequestDto;
 import com.ic.patientservice.dto.PatientResponseDto;
 import com.ic.patientservice.mapper.PatientMapper;
@@ -24,6 +25,9 @@ public class PatientService {
     }
 
     public PatientResponseDto addPatient(PatientRequestDto dto){
+        if(repository.existsByEmail(dto.getEmail())){
+            throw new EmailAlreadyExistException("Patient with this email already Exist "+ dto.getEmail());
+        }
         Patient patient = repository.save(PatientMapper.toEntity(dto));
         return PatientMapper.toDto(patient);
     }
