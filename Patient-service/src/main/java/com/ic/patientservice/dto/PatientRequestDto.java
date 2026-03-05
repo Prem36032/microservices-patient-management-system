@@ -1,5 +1,6 @@
 package com.ic.patientservice.dto;
 
+import com.ic.patientservice.dto.validationGroups.CreatePatientValidationGroup;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -19,7 +20,7 @@ public class PatientRequestDto {
     @NotBlank(message = "Address Can't be empty")
     private String address;
 
-    @NotBlank(message = "registeredDate Can't be empty")
+    @NotBlank( groups = {CreatePatientValidationGroup.class}, message = "registeredDate Can't be empty")
     private String registeredDate;
 
     @NotBlank(message = "Date of birth can't be empty")
