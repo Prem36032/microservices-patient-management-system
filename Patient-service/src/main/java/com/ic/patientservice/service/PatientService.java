@@ -38,7 +38,7 @@ public class PatientService {
 
     public PatientResponseDto updatePatient(UUID id, PatientRequestDto dto){
         Patient patient = repository.findById(id).orElseThrow(()-> new PatientNotFoundException("Patient with this id doesn't exists"));
-        if(repository.existsByEmail(dto.getEmail())){
+        if(repository.existsByEmailAndIdNot(dto.getEmail(), id)){
             throw new EmailAlreadyExistException("A patient with this email already exist");
         }
         patient.setName(dto.getName());
@@ -46,6 +46,10 @@ public class PatientService {
         patient.setDateOfBirth(LocalDate.parse(dto.getDateOfBirth()));
 
         return PatientMapper.toDto(repository.save(patient));
+    }
+
+    public void deletePatient(UUID id){
+        repository.deleteById(id);
     }
 
 
