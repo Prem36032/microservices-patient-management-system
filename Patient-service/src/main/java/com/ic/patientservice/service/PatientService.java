@@ -1,13 +1,17 @@
 package com.ic.patientservice.service;
 
+import billing.BillingResponse;
 import com.ic.patientservice.GlobalExceptionHandler.EmailAlreadyExistException;
 import com.ic.patientservice.GlobalExceptionHandler.PatientNotFoundException;
 import com.ic.patientservice.dto.PatientRequestDto;
 import com.ic.patientservice.dto.PatientResponseDto;
+import com.ic.patientservice.grpc.BillingServiceGrpcClient;
 import com.ic.patientservice.mapper.PatientMapper;
 import com.ic.patientservice.model.Patient;
 import com.ic.patientservice.repository.PatientRepository;
 import org.apache.catalina.mapper.Mapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,14 +21,19 @@ import java.util.UUID;
 @Service
 public class PatientService {
 
+    private static final Logger log = LoggerFactory.getLogger(PatientService.class);
     private final PatientRepository repository;
+    private final BillingServiceGrpcClient grpcClient;
 
-    public PatientService(PatientRepository repository) {
+    public PatientService(PatientRepository repository, BillingServiceGrpcClient grpcClient) {
         this.repository = repository;
+        this.grpcClient = grpcClient;
     }
 
     public List<PatientResponseDto> getAll(){
         List<Patient> patients = repository.findAll();
+        BillingResponse response = grpcClient.CreateBillingAccount("12","12","122");
+        log.info(String.valueOf(response));
         return patients.stream().map(PatientMapper::toDto).toList();
     }
 
@@ -33,6 +42,8 @@ public class PatientService {
             throw new EmailAlreadyExistException("Patient with this email already Exist "+ dto.getEmail());
         }
         Patient patient = repository.save(PatientMapper.toEntity(dto));
+        log.info("Request before grpc {}",dto);
+        BillingResponse res = grpcClient.CreateBillingAccount(patient.getId().toString(),patient.getName(), patient.getEmail());
         return PatientMapper.toDto(patient);
     }
 
