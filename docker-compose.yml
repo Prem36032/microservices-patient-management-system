@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 networks:
   internal:
@@ -6,8 +6,29 @@ networks:
 
 volumes:
   patient-service-db:
+  auth-service-db:
 
 services:
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093,CONTROLLER://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9094
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      SOME_VALUE: NIL
+
+    networks:
+      - internal
 
   patient-service-db:
     image: postgres:latest
@@ -23,9 +44,23 @@ services:
     networks:
       - internal
 
+  auth-service-db:
+    image: postgres:latest
+    container_name: auth-service-db
+    ports:
+      - "5001:5432"
+    volumes:
+      - auth-service-db:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=password
+    networks:
+      - internal
+
   patient-service:
     build: ./Patient-service
-    container_name: Patient-service
+    container_name: patient-service
     ports:
       - "4000:4000"
       - "5005:5005"
@@ -37,6 +72,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_SQL_INIT_MODE=always
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
       - patient-service-db
     networks:
@@ -50,3 +86,40 @@ services:
       - "9001:9001"
     networks:
       - internal
+
+  analytics-service:
+    build: ./analytics-service
+    container_name: analytics-service
+    depends_on:
+      - kafka
+    networks:
+      - internal
+    ports:
+      - "4002:4002"
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    networks:
+      - internal
+    ports:
+      - "4004:4004"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:4005
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "4005:4005"
+    networks:
+      - internal
+    environment:
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-service-db:5432/db
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_SQL_INIT_MODE=always
+      - JWT_SECRET=2z3y4x5w6v7u8t9s0r1q2p3o4n5m6l7k8j9i0h1g2f3e4d5c6b7a8z9y0x1w2v3u4t5s6r7q8p9o

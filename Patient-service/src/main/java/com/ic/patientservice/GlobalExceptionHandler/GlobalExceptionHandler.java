@@ -13,11 +13,12 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String,String>>  handleValidationExceptions(MethodArgumentNotValidException ex){
-        log.error("e: ", ex);
-        HashMap<String,String> errors = new HashMap<>();
 
+        HashMap<String,String> errors = new HashMap<>();
+        log.error("e: ", ex);
         ex.getBindingResult().getFieldErrors().forEach(err-> errors.put(err.getField(),err.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errors);
     }

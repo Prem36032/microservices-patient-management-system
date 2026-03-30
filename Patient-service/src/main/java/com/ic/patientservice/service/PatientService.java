@@ -6,6 +6,7 @@ import com.ic.patientservice.GlobalExceptionHandler.PatientNotFoundException;
 import com.ic.patientservice.dto.PatientRequestDto;
 import com.ic.patientservice.dto.PatientResponseDto;
 import com.ic.patientservice.grpc.BillingServiceGrpcClient;
+import com.ic.patientservice.kafka.KafkaProducer;
 import com.ic.patientservice.mapper.PatientMapper;
 import com.ic.patientservice.model.Patient;
 import com.ic.patientservice.repository.PatientRepository;
@@ -24,10 +25,12 @@ public class PatientService {
     private static final Logger log = LoggerFactory.getLogger(PatientService.class);
     private final PatientRepository repository;
     private final BillingServiceGrpcClient grpcClient;
+    private final KafkaProducer kafkaProducer;
 
-    public PatientService(PatientRepository repository, BillingServiceGrpcClient grpcClient) {
+    public PatientService(PatientRepository repository, BillingServiceGrpcClient grpcClient, KafkaProducer kafkaProducer) {
         this.repository = repository;
         this.grpcClient = grpcClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     public List<PatientResponseDto> getAll(){
@@ -44,6 +47,7 @@ public class PatientService {
         Patient patient = repository.save(PatientMapper.toEntity(dto));
         log.info("Request before grpc {}",dto);
         BillingResponse res = grpcClient.CreateBillingAccount(patient.getId().toString(),patient.getName(), patient.getEmail());
+        kafkaProducer.sendEvent(patient);
         return PatientMapper.toDto(patient);
     }
 
